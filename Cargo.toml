@@ -1,0 +1,29 @@
+[package]
+name = "pathing"
+version = "0.0.1"
+authors = ["JJJimbo"]
+edition = "2021"
+
+[dependencies]
+array-macro = "2.1.5"
+pathfinding = "4.2.0"
+indexmap = "1.8.1"
+hashbrown = "0.13.1"
+serde = { version = "1.0.136", optional = true }
+fxhash = "0.2.1"
+centered_grid = { git = "https://github.com/JJJimbo1/centered_gid.git"}
+valley_map = { git = "https://github.com/JJJimbo1/vmap.git"}
+
+[features]
+serde = ["dep:serde", "centered_grid/serde"]
+
+[dev-dependencies]
+oorandom = "11.1.3"
+criterion = "0.5.1"
+
+[[bench]]
+name = "benches"
+harness = false
+
+[profile.test]
+opt-level = 3
