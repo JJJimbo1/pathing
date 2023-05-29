@@ -15,7 +15,7 @@ centered_grid = { git = "https://github.com/JJJimbo1/centered_gid.git"}
 valley_map = { git = "https://github.com/JJJimbo1/vmap.git"}
 
 [features]
-serde = ["dep:serde", "centered_grid/serde"]
+serde = ["dep:serde", "centered_grid/serde", "valley_map/serde"]
 
 [dev-dependencies]
 oorandom = "11.1.3"
