@@ -66,6 +66,12 @@ impl DS2Map {
         self
     }
 
+    pub fn add_objects(&mut self, objects : Vec<GridPos>) {
+        for object in objects {
+            self.blocked.insert(object);
+        }
+    }
+
     pub fn precompute(&mut self) {
         self.objects.clear();
         let mut visited : Set<GridPos> = Set::default();
