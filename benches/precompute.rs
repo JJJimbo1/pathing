@@ -20,7 +20,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         }
     }
     let new_pfg: DS2Map = DS2Map::new().with_objects(objects);
-    c.bench_function("precompute_ds2map", |b| b.iter(|| black_box(precompute_ds2map(new_pfg.clone()))));
+    // c.bench_function("precompute_ds2map", |b| b.iter(|| black_box(precompute_ds2map(new_pfg.clone()))));
     // let x = pf.find_path_and_cache(start, end);
     // println!("{:?}", x);
 }

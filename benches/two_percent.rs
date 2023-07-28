@@ -22,9 +22,9 @@ fn criterion_benchmark(c: &mut Criterion) {
     new_pfg.precompute();
     let start = GridNode { x : -((size / 2) as isize - 2), z : -((size / 2) as isize - 2) };
     let end = GridNode { x : (size / 2) as isize - 2, z : (size / 2) as isize - 2 };
-    let start = start.into();
-    let end = end.into();
-    c.bench_function("two_ds2map", |b| b.iter(|| black_box(two_ds2map(&mut new_pfg, start, end))));
+    // let start = start.into();
+    // let end = end.into();
+    // c.bench_function("two_ds2map", |b| b.iter(|| black_box(two_ds2map(&mut new_pfg, start, end))));
 }
 
 criterion_group!(two_percent, criterion_benchmark);

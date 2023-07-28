@@ -239,7 +239,7 @@ impl DS2Map {
         }
     }
 
-    pub fn objects(&self) -> &Set<GridPos> {
+    pub fn blocks(&self) -> &Set<GridPos> {
         &self.blocked
     }
 
