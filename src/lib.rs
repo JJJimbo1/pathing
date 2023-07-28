@@ -189,26 +189,29 @@ impl DS2Map {
 
         while n > 0 {
             if error > 0 {
-                if self.is_blocked(x + x_inc, z)
-                {
+                println!("{:?}, {:?}", (x + x_inc, z), self.is_blocked(x + x_inc, z));
+                if self.is_blocked(x + x_inc, z) {
                     return Some((x + x_inc, z));
                 }
                 x += x_inc;
                 error -= dz;
                 n -= 1;
             } else if error < 0 {
-                if self.is_blocked(x, z + z_inc)
-                {
+                println!("{:?}, {:?}", (x, z + z_inc), self.is_blocked(x, z + z_inc));
+                if self.is_blocked(x, z + z_inc) {
                     return Some((x, z + z_inc));
                 }
                 z += z_inc;
                 error += dx;
                 n -= 1;
             } else {
+                println!("{:?}, {:?}", (x, z + z_inc), self.is_blocked(x, z + z_inc));
                 if self.is_blocked(x + x_inc, z)
-                && self.is_blocked(x, z + z_inc)
-                {
+                && self.is_blocked(x, z + z_inc) {
                     return Some((x, z + z_inc));
+                }
+                if self.is_blocked(x + x_inc, z + z_inc) {
+                    return Some((x + x_inc, z + z_inc));
                 }
                 x += x_inc;
                 z += z_inc;
@@ -238,16 +241,35 @@ impl DS2Map {
             }
         }
     }
-    pub fn is_blocked(&self, x : isize, y : isize) -> bool {
-        self.blocks.contains(&(x, y))
-    }
 
     pub fn blocks(&self) -> &Set<GridPos> {
         &self.blocks
     }
 
+    pub fn is_blocked(&self, x : isize, y : isize) -> bool {
+        self.blocks.contains(&(x, y))
+    }
+
     pub fn object_nodes(&self, pos: GridPos) -> Option<&Vec<GridNode>> {
         self.objects.get_value(&pos)
+    }
+
+    pub fn is_node(&self, x : isize, y : isize) -> bool {
+        self.objects.values().clone().into_iter().flatten().collect::<Vec<GridNode>>().contains(&(x, y).into())
+    }
+
+    pub fn bounds(&self) -> (isize, isize, isize, isize) {
+        let mut min_x = 0;
+        let mut max_x = 0;
+        let mut min_y = 0;
+        let mut max_y = 0;
+        for block in self.blocks() {
+            if block.0 < min_x { min_x = block.0; }
+            if block.0 > max_x { max_x = block.0; }
+            if block.1 < min_y { min_y = block.1; }
+            if block.1 > max_y { max_y = block.1; }
+        }
+        (min_x, max_x, min_y, max_y)
     }
 
     pub fn get_visible_cell_object_nodes(&self, node : GridNode, cell : GridPos) -> Vec<(GridNode, usize)> {
@@ -274,9 +296,12 @@ impl DS2Map {
 
     pub fn find_path(&self, start : GridPos, end : GridPos) -> Option<Vec<GridNode>> {
         let Some(start) = self.closest_unblocked_cell(start).and_then(|s| Some(s.into())) else { return None; };
+        println!("{:?}", start);
         let Some(end) = self.closest_unblocked_cell(end).and_then(|e| Some(e.into())) else { return None; };
+        println!("{:?}", end);
         astar(&start,
             |node| {
+                println!("{:?}", self.compute_visibility(*node, end));
                 self.compute_visibility(*node, end).map_or_else(
                     || vec![(end, distance(*node, end))],
                     |c| self.get_visible_cell_object_nodes(*node, c)
@@ -305,4 +330,55 @@ impl DS2Map {
 #[inline]
 pub fn distance(n1 : GridNode, n2 : GridNode) -> usize {
     (((n2.x * 10 - n1.x * 10).pow(2) + (n2.z * 10 - n1.z * 10).pow(2)) as f32).sqrt() as usize
+}
+
+
+pub fn display_with_path(grid: &DS2Map, path: Vec<GridNode>) {
+    println!("{:?}", grid.bounds());
+    let bounds = grid.bounds();
+    let mut result = String::new();
+    for y in bounds.2..=bounds.3 {
+        let mut slice = String::new();
+        for x in bounds.0..=bounds.1 {
+            if path.contains(&(x, y).into()) {
+                slice.push_str("[T]");
+            } else if grid.is_node(x, y) {
+                slice.push_str("[-]");
+            } else if grid.is_blocked(x, y) {
+                slice.push_str("[+]");
+            } else {
+                slice.push_str("[ ]");
+            }
+        }
+        result.push_str(&slice);
+        result.push_str("\n");
+    }
+    println!("{}", result);
+}
+
+#[test]
+fn atest() {
+    use oorandom::Rand32;
+    let size = 40;
+    let mut rand = Rand32::new(123);
+    let mut objects = Vec::new();
+    for i in (-size/2)..=(size/2) {
+        for j in (-size/2)..=(size/2) {
+            // if i > -1 && i < 1 && j > -1 && j < 1 || i == -20 || j == 20 {
+            //     objects.push((i, j));
+            // }
+            if rand.rand_range(1..101) < 10 {
+                objects.push((i, j));
+            }
+        }
+    }
+    let mut grid: DS2Map = DS2Map::new().with_objects(objects);
+    grid.precompute();
+    let start = GridNode { x : -((size / 2) as isize - 2), z : -((size / 2) as isize - 2) };
+    let end = GridNode { x : (size / 2) as isize - 2, z : (size / 2) as isize - 2 };
+    // println!("{:?}", grid.compute_visibility(start, end));
+    let start = start.into();
+    let end = end.into();
+    let path = grid.find_path(start, end);
+    display_with_path(&grid, path.unwrap());
 }

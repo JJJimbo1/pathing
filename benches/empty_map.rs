@@ -26,6 +26,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let end = end.into();
     let path = new_pfg.find_path(start, end);
     println!("{:?}", path);
+    display_with_path(&new_pfg, path.unwrap());
     c.bench_function("empty_ds2map", |b| b.iter(|| black_box(empty_ds2map(&mut new_pfg, start, end))));
 }
 
