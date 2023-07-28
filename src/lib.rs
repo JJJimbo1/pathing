@@ -189,7 +189,6 @@ impl DS2Map {
 
         while n > 0 {
             if error > 0 {
-                println!("{:?}, {:?}", (x + x_inc, z), self.is_blocked(x + x_inc, z));
                 if self.is_blocked(x + x_inc, z) {
                     return Some((x + x_inc, z));
                 }
@@ -197,7 +196,6 @@ impl DS2Map {
                 error -= dz;
                 n -= 1;
             } else if error < 0 {
-                println!("{:?}, {:?}", (x, z + z_inc), self.is_blocked(x, z + z_inc));
                 if self.is_blocked(x, z + z_inc) {
                     return Some((x, z + z_inc));
                 }
@@ -205,7 +203,6 @@ impl DS2Map {
                 error += dx;
                 n -= 1;
             } else {
-                println!("{:?}, {:?}", (x, z + z_inc), self.is_blocked(x, z + z_inc));
                 if self.is_blocked(x + x_inc, z)
                 && self.is_blocked(x, z + z_inc) {
                     return Some((x, z + z_inc));
@@ -301,7 +298,6 @@ impl DS2Map {
         println!("{:?}", end);
         astar(&start,
             |node| {
-                println!("{:?}", self.compute_visibility(*node, end));
                 self.compute_visibility(*node, end).map_or_else(
                     || vec![(end, distance(*node, end))],
                     |c| self.get_visible_cell_object_nodes(*node, c)
