@@ -47,47 +47,47 @@ impl From<GridPos> for GridNode {
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DS2Map {
-    blocked : Set<GridPos>,
+    blocks : Set<GridPos>,
     objects: VMap<GridPos, GridNode>,
 }
 
 impl DS2Map {
     pub fn new() -> Self {
         Self {
-            blocked : Set::default(),
+            blocks : Set::default(),
             objects: VMap::new(),
         }
     }
 
     pub fn with_objects(mut self, objects : Vec<GridPos>) -> Self {
         for object in objects {
-            self.blocked.insert(object);
+            self.blocks.insert(object);
         }
         self
     }
 
     pub fn add_objects(&mut self, objects : Vec<GridPos>) {
         for object in objects {
-            self.blocked.insert(object);
+            self.blocks.insert(object);
         }
     }
 
     pub fn precompute(&mut self) {
         self.objects.clear();
         let mut visited : Set<GridPos> = Set::default();
-        for (x, z) in self.blocked.clone() {
+        for (x, z) in self.blocks.clone() {
             if visited.contains(&(x, z)) { continue; }
             let cells = self.compute_object((x, z));
             let mut nodes = Set::default();
             for (x, z) in cells.clone() {
-                let s = self.blocked.contains(&(x, z - 1));
-                let w = self.blocked.contains(&(x - 1, z));
-                let e = self.blocked.contains(&(x + 1, z));
-                let n = self.blocked.contains(&(x, z + 1));
-                let sw = self.blocked.contains(&(x - 1, z - 1));
-                let se = self.blocked.contains(&(x + 1, z - 1));
-                let nw = self.blocked.contains(&(x - 1, z + 1));
-                let ne = self.blocked.contains(&(x + 1, z + 1));
+                let s = self.blocks.contains(&(x, z - 1));
+                let w = self.blocks.contains(&(x - 1, z));
+                let e = self.blocks.contains(&(x + 1, z));
+                let n = self.blocks.contains(&(x, z + 1));
+                let sw = self.blocks.contains(&(x - 1, z - 1));
+                let se = self.blocks.contains(&(x + 1, z - 1));
+                let nw = self.blocks.contains(&(x - 1, z + 1));
+                let ne = self.blocks.contains(&(x + 1, z + 1));
                 if !(s || sw || w) {
                     nodes.insert(GridNode::from((x - 1, z - 1)));
                 }
@@ -121,42 +121,42 @@ impl DS2Map {
         while let Some((x, z,)) = stack.pop_front() {
             {
                 let (x, z) = (x - 1, z);
-                let w = self.blocked.contains(&(x, z));
+                let w = self.blocks.contains(&(x, z));
                 if w && !visited_cells.contains(&(x, z)) && !stack.contains(&(x, z)) { stack.push_back((x, z)); }
             }
             {
                 let (x, z) = (x + 1, z);
-                let e = self.blocked.contains(&(x, z));
+                let e = self.blocks.contains(&(x, z));
                 if e && !visited_cells.contains(&(x, z)) && !stack.contains(&(x, z)) { stack.push_back((x, z)); }
             }
             {
                 let (x, z) = (x, z - 1);
-                let s = self.blocked.contains(&(x, z));
+                let s = self.blocks.contains(&(x, z));
                 if s && !visited_cells.contains(&(x, z)) && !stack.contains(&(x, z)) { stack.push_back((x, z)); }
             }
             {
                 let (x, z) = (x, z + 1);
-                let n = self.blocked.contains(&(x, z));
+                let n = self.blocks.contains(&(x, z));
                 if n && !visited_cells.contains(&(x, z)) && !stack.contains(&(x, z)) { stack.push_back((x, z)); }
             }
             {
                 let (x, z) = (x - 1, z - 1);
-                let sw = self.blocked.contains(&(x, z));
+                let sw = self.blocks.contains(&(x, z));
                 if sw && !visited_cells.contains(&(x, z)) && !stack.contains(&(x, z)) { stack.push_back((x, z)); }
             }
             {
                 let (x, z) = (x + 1, z - 1);
-                let se = self.blocked.contains(&(x, z));
+                let se = self.blocks.contains(&(x, z));
                 if se && !visited_cells.contains(&(x, z)) && !stack.contains(&(x, z)) { stack.push_back((x, z)); }
             }
             {
                 let (x, z) = (x - 1, z + 1);
-                let nw = self.blocked.contains(&(x, z));
+                let nw = self.blocks.contains(&(x, z));
                 if nw && !visited_cells.contains(&(x, z)) && !stack.contains(&(x, z)) { stack.push_back((x, z)); }
             }
             {
                 let (x, z) = (x + 1, z + 1);
-                let ne = self.blocked.contains(&(x, z));
+                let ne = self.blocks.contains(&(x, z));
                 if ne && !visited_cells.contains(&(x, z)) && !stack.contains(&(x, z)) { stack.push_back((x, z)); }
             }
             visited_cells.insert((x, z));
@@ -238,15 +238,17 @@ impl DS2Map {
             }
         }
     }
+    pub fn is_blocked(&self, x : isize, y : isize) -> bool {
+        self.blocks.contains(&(x, y))
+    }
 
     pub fn blocks(&self) -> &Set<GridPos> {
-        &self.blocked
+        &self.blocks
     }
 
-    pub fn is_blocked(&self, x : isize, y : isize) -> bool {
-        self.blocked.contains(&(x, y))
+    pub fn object_nodes(&self, pos: GridPos) -> Option<&Vec<GridNode>> {
+        self.objects.get_value(&pos)
     }
-
 
     pub fn get_visible_cell_object_nodes(&self, node : GridNode, cell : GridPos) -> Vec<(GridNode, usize)> {
         let mut visited_objects : Set<usize> = Set::default();
