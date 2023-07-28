@@ -220,21 +220,21 @@ impl DS2Map {
         None
     }
 
-    pub fn closest_unblocked_cell(&self, (x, z): GridPos) -> Option<GridPos> {
+    pub fn closest_unblocked_cell(&self, (x, z): GridPos) -> Option<GridNode> {
         match self.objects.get_value(&(x, z)) {
             Some(nodes) => {
                 let mut nodes = VecDeque::from(nodes.clone());
                 let (mut closest_node, mut closest_distance) = (None, f32::MAX);
                 while let Some(n) = nodes.pop_front() {
                     if (distance((x, z).into(), n) as f32) < closest_distance {
-                        closest_node = Some(n.pos());
+                        closest_node = Some(n);
                         closest_distance = distance((x, z).into(), n) as f32;
                     }
                 }
                 closest_node
             },
             None => {
-                Some((x, z))
+                Some((x, z).into())
             }
         }
     }
@@ -292,10 +292,8 @@ impl DS2Map {
     }
 
     pub fn find_path(&self, start : GridPos, end : GridPos) -> Option<Vec<GridNode>> {
-        let Some(start) = self.closest_unblocked_cell(start).and_then(|s| Some(s.into())) else { return None; };
-        println!("{:?}", start);
-        let Some(end) = self.closest_unblocked_cell(end).and_then(|e| Some(e.into())) else { return None; };
-        println!("{:?}", end);
+        let Some(start) = self.closest_unblocked_cell(start).and_then(|s| Some(s)) else { return None; };
+        let Some(end) = self.closest_unblocked_cell(end).and_then(|e| Some(e)) else { return None; };
         astar(&start,
             |node| {
                 self.compute_visibility(*node, end).map_or_else(
