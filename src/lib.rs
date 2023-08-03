@@ -3,7 +3,6 @@ use pathfinding::prelude::astar;
 use fxhash::*;
 use valley_map::VMap;
 
-pub type ObjectId = usize;
 pub type GridPos = (isize, isize);
 pub type Map<K, V> = FxHashMap<K, V>;
 pub type Set<T> = FxHashSet<T>;
@@ -69,6 +68,12 @@ impl DS2Map {
     pub fn add_objects(&mut self, objects : Vec<GridPos>) {
         for object in objects {
             self.blocks.insert(object);
+        }
+    }
+
+    pub fn remove_objects(&mut self, objects : Vec<GridPos>) {
+        for object in objects {
+            self.blocks.remove(&object);
         }
     }
 
