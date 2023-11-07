@@ -5,9 +5,8 @@ authors = ["JJJimbo1"]
 edition = "2021"
 
 [dependencies]
-array-macro = "2.1.5"
-pathfinding = "4.2.0"
-serde = { version = "1.0.163", optional = true }
+pathfinding = "4.3.2"
+serde = { version = "1.0.191", optional = true }
 fxhash = "0.2.1"
 valley_map = { git = "https://github.com/JJJimbo1/vmap.git"}
 

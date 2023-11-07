@@ -7,54 +7,18 @@ pub type GridPos = (isize, isize);
 pub type Map<K, V> = FxHashMap<K, V>;
 pub type Set<T> = FxHashSet<T>;
 
-impl From<GridNode> for GridPos {
-    fn from(value: GridNode) -> Self {
-        (value.x, value.z)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct GridNode {
-    pub x : isize,
-    pub z : isize,
-}
-
-impl GridNode {
-    pub fn new(x : isize, z : isize) -> Self {
-        Self {
-            x,
-            z,
-        }
-    }
-
-    pub fn pos(&self) -> GridPos {
-        (self. x, self.z)
-    }
-}
-
-impl From<GridPos> for GridNode {
-    fn from((x, z): GridPos) -> Self {
-        Self {
-            x,
-            z,
-        }
-    }
-}
-
-
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DS2Map {
     blocks : Set<GridPos>,
-    objects: VMap<GridPos, GridNode>,
+    objects: VMap<GridPos, GridPos, FxBuildHasher>,
 }
 
 impl DS2Map {
     pub fn new() -> Self {
         Self {
             blocks : Set::default(),
-            objects: VMap::new(),
+            objects: VMap::with_hasher(FxBuildHasher::default()),
         }
     }
 
@@ -94,16 +58,16 @@ impl DS2Map {
                 let nw = self.blocks.contains(&(x - 1, z + 1));
                 let ne = self.blocks.contains(&(x + 1, z + 1));
                 if !(s || sw || w) {
-                    nodes.insert(GridNode::from((x - 1, z - 1)));
+                    nodes.insert((x - 1, z - 1));
                 }
                 if !(s || se || e) {
-                    nodes.insert(GridNode::from((x + 1, z - 1)));
+                    nodes.insert((x + 1, z - 1));
                 }
                 if !(n || nw || w) {
-                    nodes.insert(GridNode::from((x - 1, z + 1)));
+                    nodes.insert((x - 1, z + 1));
                 }
                 if !(n || ne || e) {
-                    nodes.insert(GridNode::from((x + 1, z + 1)));
+                    nodes.insert((x + 1, z + 1));
                 }
             }
             visited.extend(cells.clone().into_iter());
@@ -169,23 +133,23 @@ impl DS2Map {
         visited_cells
     }
 
-    pub fn compute_visibility(&self, start : GridNode, end : GridNode) -> Option<GridPos> {
+    pub fn compute_visibility(&self, (x1, z1) : GridPos, (x2, z2) : GridPos) -> Option<GridPos> {
 
-        let x0 = start.x;
-        let z0 = start.z;
-        let x1 = end.x;
-        let z1 = end.z;
+        // let x0 = start.x;
+        // let z0 = start.z;
+        // let x1 = end.x;
+        // let z1 = end.z;
 
-        let mut dx = (x1 - x0).abs();
-        let mut dz = (z1 - z0).abs();
+        let mut dx = (x2 - x1).abs();
+        let mut dz = (z2 - z1).abs();
 
-        let mut x = x0;
-        let mut z = z0;
+        let mut x = x1;
+        let mut z = z1;
 
         let mut n = 0 + dx + dz;
 
-        let x_inc = if x1 > x0 { 1 } else if x1 < x0 { -1 } else { 0 };
-        let z_inc = if z1 > z0 { 1 } else if z1 < z0 { -1 } else { 0 };
+        let x_inc = if x2 > x1 { 1 } else if x2 < x1 { -1 } else { 0 };
+        let z_inc = if z2 > z1 { 1 } else if z2 < z1 { -1 } else { 0 };
 
         let mut error = dx - dz;
 
@@ -225,7 +189,7 @@ impl DS2Map {
         None
     }
 
-    pub fn closest_unblocked_cell(&self, (x, z): GridPos) -> Option<GridNode> {
+    pub fn closest_unblocked_cell(&self, (x, z): GridPos) -> Option<GridPos> {
         match self.objects.get_value(&(x, z)) {
             Some(nodes) => {
                 let mut nodes = VecDeque::from(nodes.clone());
@@ -252,12 +216,18 @@ impl DS2Map {
         self.blocks.contains(&(x, y))
     }
 
-    pub fn object_nodes(&self, pos: GridPos) -> Option<&Vec<GridNode>> {
+    pub fn object_nodes(&self, pos: GridPos) -> Option<&Vec<GridPos>> {
         self.objects.get_value(&pos)
     }
 
     pub fn is_node(&self, x : isize, y : isize) -> bool {
-        self.objects.values().clone().into_iter().flatten().collect::<Vec<GridNode>>().contains(&(x, y).into())
+        for object in self.objects.values().iter() {
+            if object.contains(&(x, y).into()) {
+                return true;
+            }
+        }
+        return false;
+        // self.objects.values().clone().into_iter().flatten().collect::<Vec<GridNode>>().contains(&(x, y).into())
     }
 
     pub fn bounds(&self) -> (isize, isize, isize, isize) {
@@ -274,10 +244,10 @@ impl DS2Map {
         (min_x, max_x, min_y, max_y)
     }
 
-    pub fn get_visible_cell_object_nodes(&self, node : GridNode, cell : GridPos) -> Vec<(GridNode, usize)> {
+    pub fn get_visible_cell_object_nodes(&self, node : GridPos, cell : GridPos) -> Vec<(GridPos, usize)> {
         let mut visited_objects : Set<usize> = Set::default();
-        let mut visible_nodes : Vec<(GridNode, usize)> = Vec::new();
-        let mut nodes : VecDeque<GridNode> = VecDeque::from(self.objects.get_value(&cell).unwrap().clone());
+        let mut visible_nodes : Vec<(GridPos, usize)> = Vec::new();
+        let mut nodes : VecDeque<GridPos> = VecDeque::from(self.objects.get_value(&cell).unwrap().clone());
 
         while let Some(n) = nodes.pop_front() {
             match self.compute_visibility(node, n) {
@@ -296,7 +266,7 @@ impl DS2Map {
         visible_nodes
     }
 
-    pub fn find_path(&self, start : GridPos, end : GridPos) -> Option<Vec<GridNode>> {
+    pub fn find_path(&self, start : GridPos, end : GridPos) -> Option<Vec<GridPos>> {
         let Some(start) = self.closest_unblocked_cell(start).and_then(|s| Some(s)) else { return None; };
         let Some(end) = self.closest_unblocked_cell(end).and_then(|e| Some(e)) else { return None; };
         astar(&start,
@@ -314,7 +284,7 @@ impl DS2Map {
         .map(|mut f| { self.prune(&mut f.0); f.0 } )
     }
 
-    pub fn prune(&self, path : &mut Vec<GridNode>) {
+    pub fn prune(&self, path : &mut Vec<GridPos>) {
         let mut n = 0;
         while n + 2 < path.len() {
             if self.compute_visibility(path[n], path[n + 2]).is_none() {
@@ -327,12 +297,12 @@ impl DS2Map {
 }
 
 #[inline]
-pub fn distance(n1 : GridNode, n2 : GridNode) -> usize {
-    (((n2.x * 10 - n1.x * 10).pow(2) + (n2.z * 10 - n1.z * 10).pow(2)) as f32).sqrt() as usize
+pub fn distance((x1, z1) : GridPos, (x2, z2) : GridPos) -> usize {
+    (((x2 * 10 - x1 * 10).pow(2) + (z2 * 10 - z1 * 10).pow(2)) as f32).sqrt() as usize
 }
 
 
-pub fn display_with_path(grid: &DS2Map, path: Vec<GridNode>) {
+pub fn display_with_path(grid: &DS2Map, path: Vec<GridPos>) {
     println!("{:?}", grid.bounds());
     let bounds = grid.bounds();
     let mut result = String::new();
@@ -373,11 +343,9 @@ fn atest() {
     }
     let mut grid: DS2Map = DS2Map::new().with_objects(objects);
     grid.precompute();
-    let start = GridNode { x : -((size / 2) as isize - 2), z : -((size / 2) as isize - 2) };
-    let end = GridNode { x : (size / 2) as isize - 2, z : (size / 2) as isize - 2 };
+    let start = (-((size / 2) as isize - 2), -((size / 2) as isize - 2));
+    let end = ((size / 2) as isize - 2, (size / 2) as isize - 2 );
     // println!("{:?}", grid.compute_visibility(start, end));
-    let start = start.into();
-    let end = end.into();
     let path = grid.find_path(start, end);
     display_with_path(&grid, path.unwrap());
 }

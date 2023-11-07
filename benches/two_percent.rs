@@ -13,18 +13,16 @@ fn criterion_benchmark(c: &mut Criterion) {
     let mut objects = Vec::new();
     for i in (-size/2)..(size/2) {
         for j in (-size/2)..(size/2) {
-            if rand.rand_range(1..101) < 10 {
+            if rand.rand_range(1..101) < 3 {
                 objects.push((i, j));
             }
         }
     }
     let mut new_pfg: DS2Map = DS2Map::new().with_objects(objects);
     new_pfg.precompute();
-    let start = GridNode { x : -((size / 2) as isize - 2), z : -((size / 2) as isize - 2) };
-    let end = GridNode { x : (size / 2) as isize - 2, z : (size / 2) as isize - 2 };
-    // let start = start.into();
-    // let end = end.into();
-    // c.bench_function("two_ds2map", |b| b.iter(|| black_box(two_ds2map(&mut new_pfg, start, end))));
+    let start = ( -((size / 2) as isize - 2), -((size / 2) as isize - 2) );
+    let end = ((size / 2) as isize - 2, (size / 2) as isize - 2 );
+    c.bench_function("two_ds2map", |b| b.iter(|| black_box(two_ds2map(&mut new_pfg, start, end))));
 }
 
 criterion_group!(two_percent, criterion_benchmark);
