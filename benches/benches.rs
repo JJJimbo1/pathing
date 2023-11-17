@@ -1,4 +1,4 @@
-extern crate criterion;
+// extern crate criterion;
 use criterion::criterion_main;
 mod precompute;
 mod empty_map;

@@ -1,24 +1,26 @@
-use std::collections::VecDeque;
+use std::collections::{VecDeque, hash_map::RandomState, HashMap, HashSet};
 use pathfinding::prelude::astar;
-use fxhash::*;
-use valley_map::VMap;
+// use fxhash::*;
+// use valley_map::VMap;
+
+use valley_map::*;
 
 pub type GridPos = (isize, isize);
-pub type Map<K, V> = FxHashMap<K, V>;
-pub type Set<T> = FxHashSet<T>;
+pub type Map<K, V> = HashMap<K, V>;
+pub type Set<T> = HashSet<T>;
 
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct DS2Map {
     blocks : Set<GridPos>,
-    objects: VMap<GridPos, GridPos, FxBuildHasher>,
+    objects: VMap<GridPos, GridPos>,
 }
 
 impl DS2Map {
     pub fn new() -> Self {
         Self {
             blocks : Set::default(),
-            objects: VMap::with_hasher(FxBuildHasher::default()),
+            objects: VMap::new(),
         }
     }
 
