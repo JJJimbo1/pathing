@@ -1,16 +1,14 @@
-use std::collections::{VecDeque, hash_map::RandomState, HashMap, HashSet};
+use std::{collections::{VecDeque, HashMap, HashSet}, cmp::Ordering};
 use pathfinding::prelude::astar;
 // use fxhash::*;
-// use valley_map::VMap;
-
-use valley_map::*;
+use vmap::VMap;
 
 pub type GridPos = (isize, isize);
 pub type Map<K, V> = HashMap<K, V>;
 pub type Set<T> = HashSet<T>;
 
 #[derive(Debug, Clone)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DS2Map {
     blocks : Set<GridPos>,
     objects: VMap<GridPos, GridPos>,
@@ -50,11 +48,11 @@ impl DS2Map {
             if visited.contains(&(x, z)) { continue; }
             let cells = self.compute_object((x, z));
             let mut nodes = Set::default();
-            for (x, z) in cells.clone() {
-                let s = self.blocks.contains(&(x, z - 1));
-                let w = self.blocks.contains(&(x - 1, z));
-                let e = self.blocks.contains(&(x + 1, z));
-                let n = self.blocks.contains(&(x, z + 1));
+            for (x, z) in &cells {
+                let s = self.blocks.contains(&(*x, z - 1));
+                let w = self.blocks.contains(&(x - 1, *z));
+                let e = self.blocks.contains(&(x + 1, *z));
+                let n = self.blocks.contains(&(*x, z + 1));
                 let sw = self.blocks.contains(&(x - 1, z - 1));
                 let se = self.blocks.contains(&(x + 1, z - 1));
                 let nw = self.blocks.contains(&(x - 1, z + 1));
@@ -137,11 +135,6 @@ impl DS2Map {
 
     pub fn compute_visibility(&self, (x1, z1) : GridPos, (x2, z2) : GridPos) -> Option<GridPos> {
 
-        // let x0 = start.x;
-        // let z0 = start.z;
-        // let x1 = end.x;
-        // let z1 = end.z;
-
         let mut dx = (x2 - x1).abs();
         let mut dz = (z2 - z1).abs();
 
@@ -159,53 +152,61 @@ impl DS2Map {
         dz *= 2;
 
         while n > 0 {
-            if error > 0 {
-                if self.is_blocked(x + x_inc, z) {
-                    return Some((x + x_inc, z));
+            match error.cmp(&0) {
+                Ordering::Greater => {
+                    if self.is_blocked(x + x_inc, z) {
+                        return Some((x + x_inc, z));
+                    }
+                    x += x_inc;
+                    error -= dz;
+                    n -= 1;
                 }
-                x += x_inc;
-                error -= dz;
-                n -= 1;
-            } else if error < 0 {
-                if self.is_blocked(x, z + z_inc) {
-                    return Some((x, z + z_inc));
+                Ordering::Less => {
+                    if self.is_blocked(x, z + z_inc) {
+                        return Some((x, z + z_inc));
+                    }
+                    z += z_inc;
+                    error += dx;
+                    n -= 1;
                 }
-                z += z_inc;
-                error += dx;
-                n -= 1;
-            } else {
-                if self.is_blocked(x + x_inc, z)
-                && self.is_blocked(x, z + z_inc) {
-                    return Some((x, z + z_inc));
+                Ordering::Equal => {
+                    match (self.is_blocked(x + x_inc, z) && self.is_blocked(x, z + z_inc), self.is_blocked(x + x_inc, z + z_inc)) {
+                        (true, _) => {
+                            return Some((x, z + z_inc));
+                        },
+                        (false, true) => {
+                            return Some((x + x_inc, z + z_inc));
+                        },
+                        _ => {
+                            x += x_inc;
+                            z += z_inc;
+                            error -= dz;
+                            error += dx;
+                            n -= 2;
+                        }
+                    }
                 }
-                if self.is_blocked(x + x_inc, z + z_inc) {
-                    return Some((x + x_inc, z + z_inc));
-                }
-                x += x_inc;
-                z += z_inc;
-                error -= dz;
-                error += dx;
-                n -= 2;
             }
         }
         None
     }
 
-    pub fn closest_unblocked_cell(&self, (x, z): GridPos) -> Option<GridPos> {
+    pub fn closest_unblocked_cell(&self, (x, z): GridPos) -> GridPos {
         match self.objects.get_value(&(x, z)) {
             Some(nodes) => {
                 let mut nodes = VecDeque::from(nodes.clone());
-                let (mut closest_node, mut closest_distance) = (None, f32::MAX);
+                let (mut closest_node, mut closest_distance) = ((x, z), f32::MAX);
                 while let Some(n) = nodes.pop_front() {
-                    if (distance((x, z).into(), n) as f32) < closest_distance {
-                        closest_node = Some(n);
-                        closest_distance = distance((x, z).into(), n) as f32;
+                    let distance = distance((x, z), n) as f32;
+                    if distance < closest_distance {
+                        closest_node = n;
+                        closest_distance = distance;
                     }
                 }
                 closest_node
             },
             None => {
-                Some((x, z).into())
+                (x, z)
             }
         }
     }
@@ -233,20 +234,20 @@ impl DS2Map {
     }
 
     pub fn bounds(&self) -> (isize, isize, isize, isize) {
-        let mut min_x = 0;
-        let mut max_x = 0;
-        let mut min_y = 0;
-        let mut max_y = 0;
-        for block in self.blocks() {
-            if block.0 < min_x { min_x = block.0; }
-            if block.0 > max_x { max_x = block.0; }
-            if block.1 < min_y { min_y = block.1; }
-            if block.1 > max_y { max_y = block.1; }
-        }
-        (min_x, max_x, min_y, max_y)
+        self.blocks().iter().fold(
+            (isize::MAX, isize::MIN, isize::MAX, isize::MIN),
+            |(min_x, max_x, min_y, max_y), (x, y)| {
+                (
+                    min_x.min(*x),
+                    max_x.max(*x),
+                    min_y.min(*y),
+                    max_y.max(*y)
+                )
+            }
+        )
     }
 
-    pub fn get_visible_cell_object_nodes(&self, node : GridPos, cell : GridPos) -> Vec<(GridPos, usize)> {
+    pub fn get_visible_object_nodes(&self, node : GridPos, cell : GridPos) -> Vec<(GridPos, usize)> {
         let mut visited_objects : Set<usize> = Set::default();
         let mut visible_nodes : Vec<(GridPos, usize)> = Vec::new();
         let mut nodes : VecDeque<GridPos> = VecDeque::from(self.objects.get_value(&cell).unwrap().clone());
@@ -254,9 +255,13 @@ impl DS2Map {
         while let Some(n) = nodes.pop_front() {
             match self.compute_visibility(node, n) {
                 Some(c) => {
+                    // let current_index = self.objects.get_index(&c).unwrap();
+
                     if !visited_objects.contains(self.objects.get_index(&c).unwrap()) && self.objects.get_index(&cell).unwrap() != self.objects.get_index(&c).unwrap() {
                         visited_objects.insert(*self.objects.get_index(&c).unwrap());
-                        nodes.append(&mut VecDeque::from(self.objects.get_value(&c).unwrap().clone()));
+                        if let Some(new_nodes) = self.objects.get_value(&c) {
+                            nodes.extend(new_nodes);
+                        }
                     }
                 },
                 None => {
@@ -269,13 +274,13 @@ impl DS2Map {
     }
 
     pub fn find_path(&self, start : GridPos, end : GridPos) -> Option<Vec<GridPos>> {
-        let Some(start) = self.closest_unblocked_cell(start).and_then(|s| Some(s)) else { return None; };
-        let Some(end) = self.closest_unblocked_cell(end).and_then(|e| Some(e)) else { return None; };
+        let start = self.closest_unblocked_cell(start);
+        let end = self.closest_unblocked_cell(end);
         astar(&start,
             |node| {
                 self.compute_visibility(*node, end).map_or_else(
                     || vec![(end, distance(*node, end))],
-                    |c| self.get_visible_cell_object_nodes(*node, c)
+                    |c| self.get_visible_object_nodes(*node, c)
                 )
             },
             |node| {
@@ -283,10 +288,10 @@ impl DS2Map {
             },
             |node| *node == end
         )
-        .map(|mut f| { self.prune(&mut f.0); f.0 } )
+        .map(|(mut path, _)| { self.prune(&mut path); path } )
     }
 
-    pub fn prune(&self, path : &mut Vec<GridPos>) {
+    pub fn prune(&self, path: &mut Vec<GridPos>) {
         let mut n = 0;
         while n + 2 < path.len() {
             if self.compute_visibility(path[n], path[n + 2]).is_none() {
@@ -300,7 +305,7 @@ impl DS2Map {
 
 #[inline]
 pub fn distance((x1, z1) : GridPos, (x2, z2) : GridPos) -> usize {
-    (((x2 * 10 - x1 * 10).pow(2) + (z2 * 10 - z1 * 10).pow(2)) as f32).sqrt() as usize
+    (((x2 * 10 - x1 * 10).pow(2) + (z2 * 10 - z1 * 10).pow(2)) as f32) as usize
 }
 
 
@@ -325,29 +330,4 @@ pub fn display_with_path(grid: &DS2Map, path: Vec<GridPos>) {
         result.push_str("\n");
     }
     println!("{}", result);
-}
-
-#[test]
-fn atest() {
-    use oorandom::Rand32;
-    let size = 40;
-    let mut rand = Rand32::new(123);
-    let mut objects = Vec::new();
-    for i in (-size/2)..=(size/2) {
-        for j in (-size/2)..=(size/2) {
-            // if i > -1 && i < 1 && j > -1 && j < 1 || i == -20 || j == 20 {
-            //     objects.push((i, j));
-            // }
-            if rand.rand_range(1..101) < 10 {
-                objects.push((i, j));
-            }
-        }
-    }
-    let mut grid: DS2Map = DS2Map::new().with_objects(objects);
-    grid.precompute();
-    let start = (-((size / 2) as isize - 2), -((size / 2) as isize - 2));
-    let end = ((size / 2) as isize - 2, (size / 2) as isize - 2 );
-    // println!("{:?}", grid.compute_visibility(start, end));
-    let path = grid.find_path(start, end);
-    display_with_path(&grid, path.unwrap());
 }

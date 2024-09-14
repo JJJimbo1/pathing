@@ -2,7 +2,7 @@ use criterion::{Criterion, black_box, criterion_group};
 use pathing::*;
 use oorandom::Rand32;
 
-fn two_ds2map(ds2map : &DS2Map, start : GridPos, end : GridPos)
+fn two_ds2map(ds2map: &DS2Map, start: GridPos, end: GridPos)
 {
     ds2map.find_path(start, end);
 }
