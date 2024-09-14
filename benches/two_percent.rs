@@ -13,7 +13,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     let mut objects = Vec::new();
     for i in (-size/2)..(size/2) {
         for j in (-size/2)..(size/2) {
-            if rand.rand_range(1..101) < 3 {
+            if rand.rand_range(1..101) < 11 {
                 objects.push((i, j));
             }
         }
@@ -22,6 +22,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     new_pfg.precompute();
     let start = ( -((size / 2) as isize - 2), -((size / 2) as isize - 2) );
     let end = ((size / 2) as isize - 2, (size / 2) as isize - 2 );
+    let path = new_pfg.find_path(start, end);
     c.bench_function("two_ds2map", |b| b.iter(|| black_box(two_ds2map(&mut new_pfg, start, end))));
 }
 

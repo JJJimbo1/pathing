@@ -1,4 +1,4 @@
-use std::{collections::{VecDeque, HashMap, HashSet}, cmp::Ordering};
+use std::{cmp::Ordering, collections::{HashMap, HashSet, VecDeque}, fmt::Display};
 use pathfinding::prelude::astar;
 use vmap::VMap;
 
@@ -229,7 +229,6 @@ impl DS2Map {
             }
         }
         return false;
-        // self.objects.values().clone().into_iter().flatten().collect::<Vec<GridNode>>().contains(&(x, y).into())
     }
 
     pub fn bounds(&self) -> (isize, isize, isize, isize) {
@@ -254,10 +253,10 @@ impl DS2Map {
         while let Some(n) = nodes.pop_front() {
             match self.compute_visibility(node, n) {
                 Some(c) => {
-                    // let current_index = self.objects.get_index(&c).unwrap();
+                    let current_index = self.objects.get_index(&c).unwrap();
 
-                    if !visited_objects.contains(self.objects.get_index(&c).unwrap()) && self.objects.get_index(&cell).unwrap() != self.objects.get_index(&c).unwrap() {
-                        visited_objects.insert(*self.objects.get_index(&c).unwrap());
+                    if !visited_objects.contains(current_index) && self.objects.get_index(&cell).unwrap() != current_index {
+                        visited_objects.insert(*current_index);
                         if let Some(new_nodes) = self.objects.get_value(&c) {
                             nodes.extend(new_nodes);
                         }
@@ -307,26 +306,36 @@ pub fn distance((x1, z1) : GridPos, (x2, z2) : GridPos) -> usize {
     (((x2 * 10 - x1 * 10).pow(2) + (z2 * 10 - z1 * 10).pow(2)) as f32) as usize
 }
 
-
-pub fn display_with_path(grid: &DS2Map, path: Vec<GridPos>) {
-    println!("{:?}", grid.bounds());
-    let bounds = grid.bounds();
-    let mut result = String::new();
-    for y in bounds.2..=bounds.3 {
-        let mut slice = String::new();
-        for x in bounds.0..=bounds.1 {
-            if path.contains(&(x, y).into()) {
-                slice.push_str("[T]");
-            } else if grid.is_node(x, y) {
-                slice.push_str("[-]");
-            } else if grid.is_blocked(x, y) {
-                slice.push_str("[+]");
-            } else {
-                slice.push_str("[ ]");
-            }
+impl Display for DS2Map {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let bounds = self.bounds();
+        let capacity = (bounds.2..=bounds.3).count() * ((bounds.0..=bounds.1).count() * 5 + 3) + (bounds.0..=bounds.1).count() * 3 * 3 + (bounds.0..=bounds.1).count() * 3 + 3;
+        let mut result = String::with_capacity(capacity);
+        println!("{}", result.capacity());
+        result.push_str(" ");
+        for _ in bounds.0..=bounds.1 {
+            result.push_str("___");
         }
-        result.push_str(&slice);
         result.push_str("\n");
+        for y in bounds.2..=bounds.3 {
+            let mut slice = String::new();
+            slice.push_str("|");
+            for x in bounds.0..=bounds.1 {
+                if self.is_node(x, y) {
+                    slice.push_str("[\u{25A0}]");
+                } else if self.is_blocked(x, y) {
+                    slice.push_str("[\u{25A1}]");
+                } else {
+                    slice.push_str("   ");
+                }
+            }
+            result.push_str(&slice);
+            result.push_str("|\n");
+        }
+        result.push_str(" ");
+        for _ in bounds.0..=bounds.1 {
+            result.push_str("\u{203E}\u{203E}\u{203E}");
+        }
+        write!(f, "{}", result)
     }
-    println!("{}", result);
 }
