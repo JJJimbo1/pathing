@@ -1,6 +1,5 @@
 use std::{collections::{VecDeque, HashMap, HashSet}, cmp::Ordering};
 use pathfinding::prelude::astar;
-// use fxhash::*;
 use vmap::VMap;
 
 pub type GridPos = (isize, isize);
