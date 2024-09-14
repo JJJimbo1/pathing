@@ -311,7 +311,6 @@ impl Display for DS2Map {
         let bounds = self.bounds();
         let capacity = (bounds.2..=bounds.3).count() * ((bounds.0..=bounds.1).count() * 5 + 3) + (bounds.0..=bounds.1).count() * 3 * 3 + (bounds.0..=bounds.1).count() * 3 + 3;
         let mut result = String::with_capacity(capacity);
-        println!("{}", result.capacity());
         result.push_str(" ");
         for _ in bounds.0..=bounds.1 {
             result.push_str("___");
