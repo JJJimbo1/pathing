@@ -133,7 +133,6 @@ impl DS2Map {
     }
 
     pub fn compute_visibility(&self, (x1, z1) : GridPos, (x2, z2) : GridPos) -> Option<GridPos> {
-
         let mut dx = (x2 - x1).abs();
         let mut dz = (z2 - z1).abs();
 
@@ -267,7 +266,6 @@ impl DS2Map {
                 }
             }
         }
-
         visible_nodes
     }
 
@@ -303,7 +301,7 @@ impl DS2Map {
 
 #[inline]
 pub fn distance((x1, z1) : GridPos, (x2, z2) : GridPos) -> usize {
-    (((x2 * 10 - x1 * 10).pow(2) + (z2 * 10 - z1 * 10).pow(2)) as f32) as usize
+    ((x2 * 10 - x1 * 10).pow(2) + (z2 * 10 - z1 * 10).pow(2)) as usize
 }
 
 impl Display for DS2Map {

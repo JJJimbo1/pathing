@@ -1,4 +1,4 @@
-use criterion::{Criterion, black_box, criterion_group};
+use criterion::{Criterion, criterion_group};
 use pathing::*;
 use oorandom::Rand32;
 
@@ -22,8 +22,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     new_pfg.precompute();
     let start = ( -((size / 2) as isize - 2), -((size / 2) as isize - 2) );
     let end = ((size / 2) as isize - 2, (size / 2) as isize - 2 );
-    let path = new_pfg.find_path(start, end);
-    c.bench_function("two_ds2map", |b| b.iter(|| black_box(two_ds2map(&mut new_pfg, start, end))));
+    c.bench_function("two_ds2map", |b| b.iter(|| std::hint::black_box(two_ds2map(&mut new_pfg, start, end))));
 }
 
 criterion_group!(two_percent, criterion_benchmark);

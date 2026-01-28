@@ -1,0 +1,55 @@
+startup	time=1769198276861449154
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.00	duration=500059932	selected-samples=922
+throughput-point	name=a	delta=130966917
+throughput-point	name=b	delta=131561649
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.00	duration=500057461	selected-samples=909
+throughput-point	name=a	delta=131341001
+throughput-point	name=b	delta=131454870
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=1.00	duration=29019708	selected-samples=919
+throughput-point	name=a	delta=130157216
+throughput-point	name=b	delta=129628171
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.80	duration=132868002	selected-samples=909
+throughput-point	name=a	delta=131417619
+throughput-point	name=b	delta=130125655
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.00	duration=500060352	selected-samples=912
+throughput-point	name=a	delta=131448153
+throughput-point	name=b	delta=131626305
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.05	duration=477092929	selected-samples=905
+throughput-point	name=a	delta=131537403
+throughput-point	name=b	delta=131407816
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.75	duration=157960609	selected-samples=875
+throughput-point	name=a	delta=124988187
+throughput-point	name=b	delta=131266081
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.90	duration=82453822	selected-samples=918
+throughput-point	name=a	delta=131609158
+throughput-point	name=b	delta=130596566
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.35	duration=334761721	selected-samples=919
+throughput-point	name=a	delta=130161505
+throughput-point	name=b	delta=131544922
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/fmt/rt.rs:196	speedup=0.50	duration=467863823	selected-samples=92
+throughput-point	name=a	delta=128926632
+throughput-point	name=b	delta=129676965
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.40	duration=313511558	selected-samples=919
+throughput-point	name=a	delta=131319960
+throughput-point	name=b	delta=131419279
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.05	duration=477042822	selected-samples=907
+throughput-point	name=a	delta=131477535
+throughput-point	name=b	delta=131673110
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.00	duration=500046192	selected-samples=883
+throughput-point	name=a	delta=131545063
+throughput-point	name=b	delta=131575270
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.00	duration=500053072	selected-samples=908
+throughput-point	name=a	delta=131554181
+throughput-point	name=b	delta=131651562
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.90	duration=94957563	selected-samples=896
+throughput-point	name=a	delta=129164252
+throughput-point	name=b	delta=131155970
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	speedup=0.75	duration=160303782	selected-samples=453
+throughput-point	name=a	delta=0
+throughput-point	name=b	delta=131603887
+experiment	selected=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/fmt/rt.rs:196	speedup=0.00	duration=1000064084	selected-samples=96
+throughput-point	name=a	delta=0
+throughput-point	name=b	delta=254061773
+runtime	time=9193890074
+samples	location=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/fmt/rt.rs:196	count=1508
+samples	location=/home/admin/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/std/src/io/mod.rs:648	count=15214
